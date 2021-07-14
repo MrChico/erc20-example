@@ -78,7 +78,7 @@ object "Token" {
 
             function decodeAsAddress(offset) -> v {
                 v := decodeAsUint(offset)
-                if iszero(iszero(and(v, not(0xffffffffffffffffffffffffffffffffffffffff)))) {
+                if iszero(eq(v, and(v, 0xffffffffffffffffffffffffffffffffffffffff))) {
                     revert(0, 0)
                 }
             }
@@ -116,12 +116,18 @@ object "Token" {
             function ownerPos() -> p { p := 0 }
             function totalSupplyPos() -> p { p := 1 }
             function accountToStorageOffset(account) -> offset {
-                offset := add(0x1000, account)
+                mstore(0, account)
+                mstore(0x20, 2)
+                offset := keccak256(0, 0x40)
+
             }
             function allowanceStorageOffset(account, spender) -> offset {
-                offset := accountToStorageOffset(account)
-                mstore(0, offset)
-                mstore(0x20, spender)
+                mstore(0, account)
+                mstore(0x20, 3)
+                offset := keccak256(0, 0x40)
+
+                mstore(0, spender)
+                mstore(0x20, offset)
                 offset := keccak256(0, 0x40)
             }
 
